@@ -174,7 +174,7 @@ const getBloodStock = async (req, res, next) => {
 const addBloodStock = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ success: false, message: 'An error occurred. Please try again later.' });
+    return res.status(400).json({ success: false, message: 'Validation failed', errors: errors.array() });
   }
 
   let { bloodGroup, availableUnits } = req.body;
@@ -183,13 +183,13 @@ const addBloodStock = async (req, res, next) => {
     bloodGroup = req.body.blood_group;
   }
   if (!bloodGroup) {
-    return res.status(400).json({ success: false, message: 'An error occurred. Please try again later.' });
+    return res.status(400).json({ success: false, message: 'Blood group is required.' });
   }
   bloodGroup = bloodGroup.toUpperCase();
 
   const validGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
   if (!validGroups.includes(bloodGroup)) {
-    return res.status(400).json({ success: false, message: 'An error occurred. Please try again later.' });
+    return res.status(400).json({ success: false, message: `Invalid blood group: ${bloodGroup}` });
   }
 
   try {
@@ -242,17 +242,17 @@ const updateBloodStock = async (req, res, next) => {
     bloodGroup = req.params.blood_group;
   }
   if (!bloodGroup) {
-    return res.status(400).json({ success: false, message: 'An error occurred. Please try again later.' });
+    return res.status(400).json({ success: false, message: 'Blood group is required.' });
   }
   const validGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
   if (!validGroups.includes(bloodGroup.toUpperCase())) {
-    return res.status(400).json({ success: false, message: 'An error occurred. Please try again later.' });
+    return res.status(400).json({ success: false, message: `Invalid blood group: ${bloodGroup}` });
   }
 
   if (availableUnits === undefined || availableUnits < 0) {
     return res.status(400).json({
       success: false,
-      message: 'An error occurred. Please try again later.'
+      message: 'Available units must be provided and cannot be negative.'
     });
   }
 

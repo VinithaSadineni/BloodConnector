@@ -1,7 +1,7 @@
 const axios = require('axios');
 (async () => {
   try {
-    const response = await axios.post('http://localhost:5000/api/auth/register', {
+    const response = await axios.post(process.env.API_BASE_URL ? `${process.env.API_BASE_URL}/auth/register` : 'http://localhost:5000/api/auth/register', {
       name: 'Test Hospital',
       email: `testhospital${Date.now()}@example.com`,
       phone: '1234567890',

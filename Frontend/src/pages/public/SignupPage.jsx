@@ -23,7 +23,7 @@ const registrationSchema = zod.object({
     .regex(/[0-9]/, 'Must contain at least 1 number')
     .regex(/[^A-Za-z0-9]/, 'Must contain at least 1 special character'),
   confirmPassword: zod.string().min(1, 'Please confirm your password'),
-  role: zod.string().min(1, 'Select the role while registration'),
+  role: zod.enum(['seeker', 'donor', 'hospital', 'admin']),
   hospitalName: zod.string().optional(),
   licenseNumber: zod.string().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -103,7 +103,8 @@ export const SignupPage = () => {
       toast.success('Registration successful');
       navigate('/login');
     } catch (error) {
-      toast.error(error.message || 'Registration failed');
+      // Error is already toasted by axios interceptor
+      console.error('Registration error:', error);
     }
   };
 

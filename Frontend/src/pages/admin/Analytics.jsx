@@ -29,12 +29,13 @@ const Analytics = () => {
       const response = await adminService.getAnalytics({
         timeRange: parseInt(timeRange),
       })
+      const payload = response.data || response;
       setData({
-        requestsByBloodGroup: response.requestsByBloodGroup || [],
-        donationTrends: response.donationTrends || [],
-        requestStatusDistribution: response.requestStatusDistribution || [],
-        cityHeatmap: response.cityHeatmap || [],
-        summary: response.summary || {},
+        requestsByBloodGroup: payload.requestsByBloodGroup || [],
+        donationTrends: payload.donationTrends || [],
+        requestStatusDistribution: payload.requestStatusDistribution || [],
+        cityHeatmap: payload.cityHeatmap || [],
+        summary: payload.summary || {},
       })
     } catch (err) {
       console.error(err)

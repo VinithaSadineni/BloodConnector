@@ -27,5 +27,8 @@
     "nodemon": "^3.1.14"
   },
   "author": "EBC Team",
-  "license": "ISC"
+  "license": "ISC",
+  "engines": {
+    "node": ">=18 <=22"
+  }
 }

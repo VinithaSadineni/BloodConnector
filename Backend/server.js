@@ -19,6 +19,29 @@ const adminRoutes = require('./routes/admin.routes');
 const searchRoutes = require('./routes/search.routes');
 const notificationRoutes = require('./routes/notification.routes');
 
+const CLIENT_URL = process.env.CLIENT_URL;
+const DEV_CLIENT_URLS = process.env.DEV_CLIENT_URLS?.split(',').map(url => url.trim()).filter(Boolean) || [];
+
+if (!process.env.MONGO_URI) {
+  console.error('Missing required environment variable: MONGO_URI');
+  process.exit(1);
+}
+
+if (!process.env.JWT_SECRET) {
+  console.error('Missing required environment variable: JWT_SECRET');
+  process.exit(1);
+}
+
+if (process.env.NODE_ENV === 'production' && !CLIENT_URL) {
+  console.error('Missing required environment variable: CLIENT_URL in production');
+  process.exit(1);
+}
+
+if (process.env.NODE_ENV === 'development' && DEV_CLIENT_URLS.length === 0) {
+  console.error('Missing required environment variable: DEV_CLIENT_URLS in development. Set local dev URLs in .env or .env.development.');
+  process.exit(1);
+}
+
 // Connect to Database
 connectDB();
 
@@ -29,12 +52,29 @@ const server = http.createServer(app);
 // Initialize Socket.io
 initSocket(server);
 
+// Trust proxy - properly detect IP addresses behind proxies/load balancers
+app.set('trust proxy', 1);
+
 // Middleware Setup
 app.use(helmet()); // Basic security headers
-app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:3000',
-  credentials: true
-}));
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    const allowedOrigins = process.env.NODE_ENV === 'development' ? DEV_CLIENT_URLS : [CLIENT_URL];
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    callback(new Error(`CORS policy does not allow access from origin ${origin}`));
+  },
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
 
 // Logger (dev environment only)
 if (process.env.NODE_ENV === 'development') {

@@ -9,7 +9,7 @@ import EmptyState from '../../components/ui/EmptyState'
 import Skeleton from '../../components/ui/Skeleton'
 import donorService from '../../services/donorService'
 import { toast } from 'react-hot-toast'
-import { formatDistanceToNow } from 'date-fns'
+import formatDistanceToNow from 'date-fns/esm/formatDistanceToNow/index.js';
 
 const DonationHistory = () => {
   const [history, setHistory] = useState([])

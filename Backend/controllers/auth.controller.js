@@ -10,18 +10,29 @@ const { validationResult } = require('express-validator');
 const register = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ success: false, message: 'An error occurred. Please try again later.' });
+    // Return detailed validation errors to the client
+    return res.status(400).json({
+      success: false,
+      message: 'Validation failed',
+      errors: errors.array()
+    });
   }
 
   const { name, email, password, role, phone, city, state, lat, lng } = req.body;
+  const normalizedEmail = email.trim().toLowerCase();
+  const normalizedName = name.trim();
+  const normalizedRole = role.trim().toLowerCase();
+  const normalizedPhone = phone ? phone.trim() : '';
+  const normalizedCity = city ? city.trim() : '';
+  const normalizedState = state ? state.trim() : '';
 
   try {
-    // Check if user exists
-    let user = await User.findOne({ email });
+    // Check if user exists (case-insensitive email comparison)
+    let user = await User.findOne({ email: normalizedEmail });
     if (user) {
       return res.status(400).json({
         success: false,
-        message: 'An error occurred. Please try again later.'
+        message: 'User already exists. Please use a different email.'
       });
     }
 
@@ -33,19 +44,28 @@ const register = async (req, res, next) => {
 
     // Create user
     user = new User({
-      name,
-      email,
+      name: normalizedName,
+      email: normalizedEmail,
       password,
-      role,
-      phone,
-      city,
-      state,
+      role: normalizedRole,
+      phone: normalizedPhone,
+      city: normalizedCity,
+      state: normalizedState,
       location,
-      // For testing/convenience, let's make admin automatically verified, others need verification
-      isVerified: role === 'admin' || role === 'seeker', 
+      isVerified: normalizedRole === 'admin' || normalizedRole === 'seeker'
     });
 
-    await user.save();
+    try {
+      await user.save();
+    } catch (saveError) {
+      if (saveError.code === 11000) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email already exists. Please use a different email.'
+        });
+      }
+      throw saveError;
+    }
 
     // Create empty profile based on role
     if (role === 'donor') {

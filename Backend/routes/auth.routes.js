@@ -8,6 +8,7 @@ const {
   changePassword
 } = require('../controllers/auth.controller');
 const { protect } = require('../middleware/auth.middleware');
+const { authLimiter } = require('../middleware/rateLimiter');
 
 
 const router = express.Router();
@@ -16,11 +17,20 @@ const router = express.Router();
 const registerValidation = [
   body('name').notEmpty().withMessage('Name is required').trim(),
   body('email').isEmail().withMessage('Please include a valid email').normalizeEmail(),
-  body('password').isLength({ min: 6 }).withMessage('Password must be 6 or more characters'),
-  body('role').isIn(['seeker', 'donor', 'hospital', 'admin']).withMessage('Role must be seeker, donor, hospital, or admin'),
+  body('password').isLength({ min: 6 }).withMessage('Password must be 6 or more characters').trim(),
+  body('role').trim().isIn(['seeker', 'donor', 'hospital', 'admin']).withMessage('Role must be seeker, donor, hospital, or admin'),
   body('phone').optional().notEmpty().withMessage('Phone number cannot be empty').trim(),
   body('city').optional().trim(),
-  body('state').optional().trim()
+  body('state').optional().trim(),
+  body('hospitalName').optional().trim(),
+  body('licenseNumber').optional().trim(),
+  body('bloodGroup').optional().trim(),
+  body('age').optional().isInt().withMessage('Age must be an integer'),
+  body('gender').optional().trim(),
+  body('weight').optional().isFloat().withMessage('Weight must be a valid number'),
+  body('institutionType').optional().trim(),
+  body('address').optional().trim(),
+  body('pincode').optional().trim()
 ];
 
 // Login Validation
@@ -36,8 +46,8 @@ const passwordValidation = [
 ];
 
 
-router.post('/register', registerValidation, register);
-router.post('/login', loginValidation, login);
+router.post('/register', authLimiter, registerValidation, register);
+router.post('/login', authLimiter, loginValidation, login);
 router.post('/logout', logout);
 
 // Protected routes

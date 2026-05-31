@@ -1,6 +1,9 @@
 import { io } from 'socket.io-client';
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
+if (!SOCKET_URL) {
+  throw new Error('Missing VITE_SOCKET_URL. Set VITE_SOCKET_URL in .env or in your deployment environment to the deployed backend socket URL.');
+}
 
 /**
  * Creates and configures a Socket.IO client instance.

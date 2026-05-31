@@ -3,10 +3,21 @@ const jwt = require('jsonwebtoken');
 
 let io;
 
+const CLIENT_URL = process.env.CLIENT_URL;
+const DEV_CLIENT_URLS = process.env.DEV_CLIENT_URLS?.split(',').map(url => url.trim()).filter(Boolean) || [];
+
+if (process.env.NODE_ENV === 'production' && !CLIENT_URL) {
+  throw new Error('Missing required environment variable: CLIENT_URL in production');
+}
+
 const initSocket = (server) => {
+  if (process.env.NODE_ENV === 'development' && DEV_CLIENT_URLS.length === 0) {
+    throw new Error('Missing required environment variable: DEV_CLIENT_URLS in development. Set local dev URLs in .env or .env.development.');
+  }
+
   io = socketIO(server, {
     cors: {
-      origin: process.env.CLIENT_URL || 'http://localhost:3000',
+      origin: process.env.NODE_ENV === 'development' ? DEV_CLIENT_URLS : [CLIENT_URL],
       methods: ['GET', 'POST'],
       credentials: true
     }
@@ -34,7 +45,9 @@ const initSocket = (server) => {
   });
 
   io.on('connection', (socket) => {
-    console.log(`🔌 Socket connected: User ${socket.userId} with role ${socket.userRole}`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`🔌 Socket connected: User ${socket.userId} with role ${socket.userRole}`);
+    }
 
     // Join Personal Room
     socket.join(socket.userId.toString());
@@ -47,7 +60,9 @@ const initSocket = (server) => {
       if (cityName) {
         const formattedCity = cityName.trim().toLowerCase();
         socket.join(`city_${formattedCity}`);
-        console.log(`🏙️ User ${socket.userId} joined city room: city_${formattedCity}`);
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`🏙️ User ${socket.userId} joined city room: city_${formattedCity}`);
+        }
       }
     });
 
@@ -55,7 +70,9 @@ const initSocket = (server) => {
       if (cityName) {
         const formattedCity = cityName.trim().toLowerCase();
         socket.leave(`city_${formattedCity}`);
-        console.log(`🏙️ User ${socket.userId} left city room: city_${formattedCity}`);
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`🏙️ User ${socket.userId} left city room: city_${formattedCity}`);
+        }
       }
     });
 
@@ -71,7 +88,9 @@ const initSocket = (server) => {
     });
 
     socket.on('disconnect', () => {
-      console.log(`🔌 Socket disconnected: User ${socket.userId}`);
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`🔌 Socket disconnected: User ${socket.userId}`);
+      }
     });
   });
 

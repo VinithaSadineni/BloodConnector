@@ -3,7 +3,8 @@ const axios = require('axios');
 (async () => {
   try {
     // Register hospital (unique email each run)
-    const regResponse = await axios.post('http://localhost:5001/api/auth/register', {
+    const apiBase = process.env.API_BASE_URL || 'http://localhost:5000/api';
+    const regResponse = await axios.post(`${apiBase}/auth/register`, {
       name: 'Test Hospital',
       email: `testhospital${Date.now()}@example.com`,
       phone: '1234567890',
@@ -17,7 +18,7 @@ const axios = require('axios');
 
     const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
     for (const group of bloodGroups) {
-      const stockResponse = await axios.post('http://localhost:5001/api/hospital/blood-stock', {
+      const stockResponse = await axios.post(`${apiBase}/hospital/blood-stock`, {
         bloodGroup: group,
         availableUnits: Math.floor(Math.random() * 10) + 1
       }, {

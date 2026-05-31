@@ -2,9 +2,9 @@ const axios = require('axios');
 
 (async () => {
   try {
-    const base = 'http://localhost:5000/api';
+    const base = process.env.API_BASE_URL || 'http://localhost:5000/api';
     // Register a test user
-const email = `test${Date.now()}@example.com`;
+    const email = `test${Date.now()}@example.com`;
     const reg = await axios.post(`${base}/auth/register`, {
       name: 'Test User',
       email,

@@ -1,7 +1,7 @@
 const axios = require('axios');
 
 (async () => {
-  const base = 'http://localhost:5000/api';
+  const base = process.env.API_BASE_URL || 'http://localhost:5000/api';
   // Register a donor
   const email = `donor${Date.now()}@example.com`;
   const reg = await axios.post(`${base}/auth/register`, {

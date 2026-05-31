@@ -44,8 +44,9 @@ export const SeekerDashboard = () => {
       const total = statsPayload.totalRequests || 0;
       const pending = statsPayload.pendingRequests || 0;
       const processing = statsPayload.processingRequests || 0;
+      const accepted = statsPayload.acceptedRequests || 0;
       const completed = statsPayload.completedRequests || 0;
-      const active = (pending || 0) + (processing || 0);
+      const active = (pending || 0) + (processing || 0) + (accepted || 0);
 
       setStats({ total, active, completed, pending });
 

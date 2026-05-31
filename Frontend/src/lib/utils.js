@@ -1,6 +1,8 @@
 import { clsx } from "clsx"
-import { twMerge } from "tailwind-merge"
-import { formatDistanceToNow, parseISO, format } from "date-fns"
+import { twMerge } from 'tailwind-merge'
+import formatDistanceToNow from 'date-fns/esm/formatDistanceToNow/index.js';
+import parseISO from 'date-fns/esm/parseISO/index.js';
+import format from 'date-fns/esm/format/index.js';
 
 /**
  * ClassName merger utility combining clsx and tailwind-merge.

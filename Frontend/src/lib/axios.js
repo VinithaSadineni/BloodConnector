@@ -1,7 +1,10 @@
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL;
+if (!API_URL) {
+  throw new Error('Missing VITE_API_URL. Set VITE_API_URL in .env or in your deployment environment to the deployed backend API URL.');
+}
 
 const axiosInstance = axios.create({
   baseURL: API_URL,
@@ -28,7 +31,12 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    const message = error.response?.data?.message || 'An unexpected error occurred';
+    let message = error.response?.data?.message || 'An unexpected error occurred';
+    
+    // If there are detailed validation errors, append the first one
+    if (error.response?.data?.errors && Array.isArray(error.response.data.errors) && error.response.data.errors.length > 0) {
+      message = `${message}: ${error.response.data.errors[0].msg || error.response.data.errors[0].message}`;
+    }
     
     if (error.response?.status === 401) {
       // Clear token and notify the store/app

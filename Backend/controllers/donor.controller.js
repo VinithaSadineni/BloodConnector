@@ -154,8 +154,14 @@ const getNearbyRequests = async (req, res, next) => {
     const query = {
       status: 'pending'
     };
+
+    // Prevent showing requests while donor has explicitly marked unavailable
+    if (profile && profile.isAvailable === false) {
+      return res.status(200).json({ success: true, count: 0, data: [] });
+    }
+
     // If we have a blood group from profile, filter by it
-    if (profile.bloodGroup) {
+    if (profile && profile.bloodGroup) {
       query.bloodGroup = profile.bloodGroup;
     }
 
@@ -175,9 +181,10 @@ const getNearbyRequests = async (req, res, next) => {
           $maxDistance: maxDistance
         }
       };
-        } else if (profile.city) {
-      // Fallback search by city from profile or user
+    } else if (profile && profile.city) {
       query.city = new RegExp(`^${profile.city}$`, 'i');
+    } else if (req.user.city) {
+      query.city = new RegExp(`^${req.user.city}$`, 'i');
     }
 
     const requests = await BloodRequest.find(query)
@@ -245,7 +252,8 @@ const acceptRequest = async (req, res, next) => {
     }
 
     // Prevent accepting multiple times
-    if (request.acceptedBy.includes(req.user.id)) {
+    const alreadyAccepted = request.acceptedBy.some((donorId) => donorId.toString() === req.user.id);
+    if (alreadyAccepted) {
       return res.status(400).json({
         success: false,
         message: 'You have already accepted this blood request'
@@ -299,26 +307,30 @@ const rejectRequest = async (req, res, next) => {
     }
 
     // If accepted previously, remove from accepted list
-    const index = request.acceptedBy.indexOf(req.user.id);
-    if (index > -1) {
-      request.acceptedBy.splice(index, 1);
-      
-      // If no other donor has accepted, set back to pending
-      if (request.acceptedBy.length === 0) {
-        request.status = 'pending';
-      }
-      await request.save();
-
-      // Notify seeker
-      await sendNotification({
-        recipient: request.seeker,
-        sender: req.user.id,
-        type: 'general',
-        title: 'Donor Opted Out',
-        message: `Donor ${req.user.name} who accepted your request has opted out.`,
-        relatedRequest: request._id
+    const index = request.acceptedBy.findIndex((donorId) => donorId.toString() === req.user.id);
+    if (index === -1) {
+      return res.status(400).json({
+        success: false,
+        message: 'You have not accepted this request yet'
       });
     }
+
+    request.acceptedBy.splice(index, 1);
+
+    // If no other donor has accepted, set back to pending
+    if (request.acceptedBy.length === 0) {
+      request.status = 'pending';
+    }
+    await request.save();
+
+    await sendNotification({
+      recipient: request.seeker,
+      sender: req.user.id,
+      type: 'general',
+      title: 'Donor Opted Out',
+      message: `Donor ${req.user.name} who accepted your request has opted out.`,
+      relatedRequest: request._id
+    });
 
     res.status(200).json({
       success: true,
@@ -353,7 +365,8 @@ const completeDonation = async (req, res, next) => {
 
     // Ensure only an accepting donor (or admin/seeker) can mark it complete. 
     // In our rules, the donor who accepted completes it.
-    if (!request.acceptedBy.includes(req.user.id) && request.seeker.toString() !== req.user.id && req.user.role !== 'admin') {
+    const acceptedByDonor = request.acceptedBy.some((donorId) => donorId.toString() === req.user.id);
+    if (!acceptedByDonor && request.seeker.toString() !== req.user.id && req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,
         message: 'Not authorized to mark this donation as completed'

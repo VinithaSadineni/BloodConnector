@@ -285,6 +285,7 @@ const getDashboardStats = async (req, res, next) => {
   try {
     const totalRequests = await BloodRequest.countDocuments({ seeker: req.user.id });
     const pendingRequests = await BloodRequest.countDocuments({ seeker: req.user.id, status: 'pending' });
+    const acceptedRequests = await BloodRequest.countDocuments({ seeker: req.user.id, status: 'accepted' });
     const processingRequests = await BloodRequest.countDocuments({ seeker: req.user.id, status: 'processing' });
     const completedRequests = await BloodRequest.countDocuments({ seeker: req.user.id, status: 'completed' });
     const sosRequests = await BloodRequest.countDocuments({ seeker: req.user.id, isSOSRequest: true, status: { $ne: 'completed' } });
@@ -303,6 +304,7 @@ const getDashboardStats = async (req, res, next) => {
         stats: {
           totalRequests,
           pendingRequests,
+          acceptedRequests,
           processingRequests,
           completedRequests,
           sosRequests

@@ -41,12 +41,14 @@ export const hospitalService = {
   },
 
   updateBloodStock: async (bloodGroup, units) => {
-    const response = await axiosInstance.put(`/hospital/blood-stock/${bloodGroup}`, { availableUnits: units });
+    const encodedGroup = encodeURIComponent(bloodGroup);
+    const response = await axiosInstance.put(`/hospital/blood-stock/${encodedGroup}`, { availableUnits: units });
     return response.data;
   },
 
   deleteBloodStock: async (bloodGroup) => {
-    const response = await axiosInstance.delete(`/hospital/blood-stock/${bloodGroup}`);
+    const encodedGroup = encodeURIComponent(bloodGroup);
+    const response = await axiosInstance.delete(`/hospital/blood-stock/${encodedGroup}`);
     return response.data;
   },
 
@@ -56,12 +58,12 @@ export const hospitalService = {
   },
 
   approveRequest: async (id) => {
-    const response = await axiosInstance.post(`/hospital/requests/${id}/approve`);
+    const response = await axiosInstance.put(`/hospital/requests/${id}/approve`);
     return response.data;
   },
 
   rejectRequest: async (id) => {
-    const response = await axiosInstance.post(`/hospital/requests/${id}/reject`);
+    const response = await axiosInstance.put(`/hospital/requests/${id}/reject`);
     return response.data;
   },
 

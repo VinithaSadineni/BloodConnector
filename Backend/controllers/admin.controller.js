@@ -426,14 +426,27 @@ const getAnalytics = async (req, res, next) => {
     // 5. Total completed donations
     const completedDonationsCount = await DonationHistory.countDocuments({ status: 'completed' });
 
+    // Format for frontend
+    const requestsByBloodGroup = requestsByBlood.map(r => ({ name: r._id, count: r.count }));
+    const requestStatusDistribution = requestsByStatus.map(r => ({ name: r._id, value: r.count }));
+    const cityHeatmap = requestsByCity.map(r => ({ city: r._id || 'Unknown', requests: r.count }));
+    
+    const summary = {
+      completed_donations: completedDonationsCount,
+      total_users: usersByRole.reduce((acc, curr) => acc + curr.count, 0)
+    };
+    usersByRole.forEach(r => {
+      summary[`total_${r._id}s`] = r.count;
+    });
+
     res.status(200).json({
       success: true,
       data: {
-        usersByRole,
-        requestsByBlood,
-        requestsByCity,
-        requestsByStatus,
-        completedDonationsCount
+        requestsByBloodGroup,
+        requestStatusDistribution,
+        cityHeatmap,
+        summary,
+        donationTrends: [] // Mock empty for now if not implemented
       }
     });
   } catch (error) {

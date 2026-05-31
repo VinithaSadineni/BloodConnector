@@ -14,7 +14,7 @@ import Modal from '../../components/ui/Modal'
 import Skeleton from '../../components/ui/Skeleton'
 import seekerService from '../../services/seekerService'
 import { toast } from 'react-hot-toast'
-import { formatDistanceToNow } from 'date-fns'
+import formatDistanceToNow from 'date-fns/esm/formatDistanceToNow/index.js';
 
 const RequestDetail = () => {
   const { id } = useParams()
